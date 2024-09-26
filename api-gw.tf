@@ -53,7 +53,7 @@ resource "aws_api_gateway_deployment" "deployment" {
     # aws_api_gateway_integration.options_integration, # Add this line
   ]
 
-  rest_api_id = aws_api_gateway_rest_api.my_api.id
+  rest_api_id = aws_api_gateway_rest_api.fiap44.id
   stage_name = "prd"
 }
 
