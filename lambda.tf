@@ -38,7 +38,7 @@ resource "aws_default_security_group" "default_security_group" {
     }
 }
 
-resource "aws_lambda_function" "terraform_lambda_func" {
+resource "aws_lambda_function" "auth_lambda_func" {
     filename                       = "${path.module}/deployment.zip"
     function_name                  = "fiap44_auth"
     role                           = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:role/LabRole"
