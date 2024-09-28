@@ -16,6 +16,10 @@ data "aws_vpc" "vpc" {
   }
 }
 
+data "aws_db_instance" "fiap44-db" {
+  db_instance_identifier = "fiap44-db"
+}
+
 resource "aws_default_security_group" "default_security_group" {
   vpc_id = data.aws_vpc.vpc.id
 
@@ -52,11 +56,11 @@ resource "aws_lambda_function" "auth_lambda_func" {
 
     environment {
         variables = {
-            DB_USER = "pedeai"
+            DB_USER = data.aws_db_instance.fiap44-db.master_username
             DB_PASS = "senha1ABC"
-            DB_HOST = "pedeai-db.cfdtpga50euz.us-east-1.rds.amazonaws.com"
-            DB_PORT = "5432"
-            DB_NAME = "pedeai"
+            DB_HOST = data.aws_db_instance.fiap44-db.address
+            DB_PORT = data.aws_db_instance.fiap44-db.port
+            DB_NAME = data.aws_db_instance.fiap44-db.db_name
         }
     }
 }
