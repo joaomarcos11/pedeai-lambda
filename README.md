@@ -1,14 +1,21 @@
 # pedeai-lambda
 
-Repository to provision AWS Lambda function onto an existing subnet/vpc using Terraform.
+Repository to provision AWS Lambda function, API Gateway and Cognito onto an existing subnet/vpc using Terraform.
 
 ### How to use
+
+#### Github Actions
+
+- Configure the repository secrets.
+- Go to actions and manually run **Provision AWS Lambda function, API GW and Cognito** Github Action.
+
+#### Locally
 
 With *terraform*, *Go* and *aws CLI* installed.
 
 Build the program:
 
-- `GOARCH=amd64 GOOS=linux go build -o bootstrap main.go`
+- `cd ./lambda && GOARCH=amd64 GOOS=linux go build -o ../bootstrap main.go`
 - `zip deployment.zip bootstrap`
 
 Configure aws credentials:
