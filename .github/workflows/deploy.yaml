@@ -1,6 +1,9 @@
 name: Provision AWS Lambda function, API GW and Cognito
 
 on:
+  pull_request:
+    branches: [main]
+  
   workflow_dispatch:
 
 concurrency:
