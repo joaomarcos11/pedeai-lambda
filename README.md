@@ -7,7 +7,7 @@ Repository to provision AWS Lambda function, API Gateway and Cognito onto an exi
 #### Github Actions
 
 - Configure the repository secrets.
-- Go to actions and manually run **Provision AWS Lambda function, API GW and Cognito** Github Action.
+- PR to main branch or go to actions and manually run **Provision AWS Lambda function, API GW and Cognito** Github Action.
 
 #### Locally
 
