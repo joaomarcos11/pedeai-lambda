@@ -34,8 +34,10 @@ jobs:
           aws-session-token: ${{ env.AWS_SESSION_TOKEN }}
           aws-region: ${{ env.AWS_REGION }}
 
-      - name: Setup and build Go program
+      - name: Setup to build Go program
         uses: actions/setup-go@v5
+      
+      - name: Build Go program
         run: cd ./lambda && GOARCH=amd64 GOOS=linux go build -o ../bootstrap main.go
 
       - name: Zip the AWS lambda function
