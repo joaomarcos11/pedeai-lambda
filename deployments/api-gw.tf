@@ -23,6 +23,12 @@ resource "aws_api_gateway_resource" "pedidos" {
   path_part = "pedidos"
 }
 
+resource "aws_api_gateway_resource" "pedidos_id" {
+  rest_api_id = aws_api_gateway_rest_api.fiap44.id
+  parent_id = aws_api_gateway_resource.pedidos.id
+  path_part = "{id}"
+}
+
 resource "aws_api_gateway_method" "pedidos_post" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.pedidos.id
@@ -30,7 +36,7 @@ resource "aws_api_gateway_method" "pedidos_post" {
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_method" "pedidos_get" {
+resource "aws_api_gateway_method" "pedidos_list" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.pedidos.id
   http_method = "GET"
@@ -38,12 +44,28 @@ resource "aws_api_gateway_method" "pedidos_get" {
   authorizer_id = aws_api_gateway_authorizer.fiap44.id
 }
 
+resource "aws_api_gateway_method" "pedidos_get" {
+  rest_api_id = aws_api_gateway_rest_api.fiap44.id
+  resource_id = aws_api_gateway_resource.pedidos_id.id
+  http_method = "GET"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.fiap44.id
+
+  request_parameters = {
+    "method.request.path.id" = true
+  }
+}
+
 resource "aws_api_gateway_method" "pedidos_put" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.pedidos.id
+  resource_id = aws_api_gateway_resource.pedidos_id.id
   http_method = "PUT"
   authorization = "COGNITO_USER_POOLS"
   authorizer_id = aws_api_gateway_authorizer.fiap44.id
+
+  request_parameters = {
+    "method.request.path.id" = true
+  }
 }
 
 resource "aws_api_gateway_integration" "pedidos_post" {
@@ -57,10 +79,10 @@ resource "aws_api_gateway_integration" "pedidos_post" {
   uri = "http://${data.aws_lb.fiap44-alb.dns_name}/pedidos"
 }
 
-resource "aws_api_gateway_integration" "pedidos_get" {
+resource "aws_api_gateway_integration" "pedidos_list" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.pedidos.id
-  http_method = aws_api_gateway_method.pedidos_get.http_method
+  http_method = aws_api_gateway_method.pedidos_list.http_method
   integration_http_method = "GET"
   type = "HTTP"
   connection_type = "VPC_LINK"
@@ -68,15 +90,34 @@ resource "aws_api_gateway_integration" "pedidos_get" {
   uri = "http://${data.aws_lb.fiap44-alb.dns_name}/pedidos"
 }
 
+resource "aws_api_gateway_integration" "pedidos_get" {
+  rest_api_id = aws_api_gateway_rest_api.fiap44.id
+  resource_id = aws_api_gateway_resource.pedidos_id.id
+  http_method = aws_api_gateway_method.pedidos_get.http_method
+  integration_http_method = "GET"
+  type = "HTTP"
+  connection_type = "VPC_LINK"
+  connection_id = aws_api_gateway_vpc_link.fiap44-vpc-link.id
+  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/pedidos/{id}"
+
+  request_parameters = {
+    "integration.request.path.id" = "method.request.path.id"
+  }
+}
+
 resource "aws_api_gateway_integration" "pedidos_put" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.pedidos.id
+  resource_id = aws_api_gateway_resource.pedidos_id.id
   http_method = aws_api_gateway_method.pedidos_put.http_method
   integration_http_method = "PUT"
   type = "HTTP"
   connection_type = "VPC_LINK"
   connection_id = aws_api_gateway_vpc_link.fiap44-vpc-link.id
-  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/pedidos"
+  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/pedidos/{id}"
+
+  request_parameters = {
+    "integration.request.path.id" = "method.request.path.id"
+  }
 }
 
 resource "aws_api_gateway_method_response" "pedidos_post" {
@@ -86,16 +127,23 @@ resource "aws_api_gateway_method_response" "pedidos_post" {
   status_code = "201"
 }
 
-resource "aws_api_gateway_method_response" "pedidos_get" {
+resource "aws_api_gateway_method_response" "pedidos_list" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.pedidos.id
+  http_method = aws_api_gateway_method.pedidos_list.http_method
+  status_code = "200"
+}
+
+resource "aws_api_gateway_method_response" "pedidos_get" {
+  rest_api_id = aws_api_gateway_rest_api.fiap44.id
+  resource_id = aws_api_gateway_resource.pedidos_id.id
   http_method = aws_api_gateway_method.pedidos_get.http_method
   status_code = "200"
 }
 
 resource "aws_api_gateway_method_response" "pedidos_put" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.pedidos.id
+  resource_id = aws_api_gateway_resource.pedidos_id.id
   http_method = aws_api_gateway_method.pedidos_put.http_method
   status_code = "204"
 }
@@ -112,9 +160,21 @@ resource "aws_api_gateway_integration_response" "pedidos_post" {
   ]
 }
 
-resource "aws_api_gateway_integration_response" "pedidos_get" {
+resource "aws_api_gateway_integration_response" "pedidos_list" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.pedidos.id
+  http_method = aws_api_gateway_method.pedidos_list.http_method
+  status_code = aws_api_gateway_method_response.pedidos_list.status_code
+
+  depends_on = [
+    aws_api_gateway_method.pedidos_list,
+    aws_api_gateway_integration.pedidos_list,
+  ]
+}
+
+resource "aws_api_gateway_integration_response" "pedidos_get" {
+  rest_api_id = aws_api_gateway_rest_api.fiap44.id
+  resource_id = aws_api_gateway_resource.pedidos_id.id
   http_method = aws_api_gateway_method.pedidos_get.http_method
   status_code = aws_api_gateway_method_response.pedidos_get.status_code
 
@@ -126,7 +186,7 @@ resource "aws_api_gateway_integration_response" "pedidos_get" {
 
 resource "aws_api_gateway_integration_response" "pedidos_put" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.pedidos.id
+  resource_id = aws_api_gateway_resource.pedidos_id.id
   http_method = aws_api_gateway_method.pedidos_put.http_method
   status_code = aws_api_gateway_method_response.pedidos_put.status_code
 
@@ -146,6 +206,12 @@ resource "aws_api_gateway_resource" "clientes" {
   path_part = "clientes"
 }
 
+resource "aws_api_gateway_resource" "clientes_id" {
+  rest_api_id = aws_api_gateway_rest_api.fiap44.id
+  parent_id = aws_api_gateway_resource.clientes.id
+  path_part = "{id}"
+}
+
 resource "aws_api_gateway_method" "clientes_post" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.clientes.id
@@ -153,7 +219,7 @@ resource "aws_api_gateway_method" "clientes_post" {
   authorization = "NONE"
 }
 
-resource "aws_api_gateway_method" "clientes_get" {
+resource "aws_api_gateway_method" "clientes_list" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.clientes.id
   http_method = "GET"
@@ -161,20 +227,40 @@ resource "aws_api_gateway_method" "clientes_get" {
   authorizer_id = aws_api_gateway_authorizer.fiap44.id
 }
 
+resource "aws_api_gateway_method" "clientes_get" {
+  rest_api_id = aws_api_gateway_rest_api.fiap44.id
+  resource_id = aws_api_gateway_resource.clientes_id.id
+  http_method = "GET"
+  authorization = "COGNITO_USER_POOLS"
+  authorizer_id = aws_api_gateway_authorizer.fiap44.id
+
+  request_parameters = {
+    "method.request.path.id" = true
+  }
+}
+
 resource "aws_api_gateway_method" "clientes_put" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.clientes.id
+  resource_id = aws_api_gateway_resource.clientes_id.id
   http_method = "PUT"
   authorization = "COGNITO_USER_POOLS"
   authorizer_id = aws_api_gateway_authorizer.fiap44.id
+
+  request_parameters = {
+    "method.request.path.id" = true
+  }
 }
 
 resource "aws_api_gateway_method" "clientes_delete" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.clientes.id
+  resource_id = aws_api_gateway_resource.clientes_id.id
   http_method = "DELETE"
   authorization = "COGNITO_USER_POOLS"
   authorizer_id = aws_api_gateway_authorizer.fiap44.id
+
+  request_parameters = {
+    "method.request.path.id" = true
+  }
 }
 
 resource "aws_api_gateway_integration" "clientes_post" {
@@ -188,10 +274,10 @@ resource "aws_api_gateway_integration" "clientes_post" {
   uri = "http://${data.aws_lb.fiap44-alb.dns_name}/clientes"
 }
 
-resource "aws_api_gateway_integration" "clientes_get" {
+resource "aws_api_gateway_integration" "clientes_list" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.clientes.id
-  http_method = aws_api_gateway_method.clientes_get.http_method
+  http_method = aws_api_gateway_method.clientes_list.http_method
   integration_http_method = "GET"
   type = "HTTP"
   connection_type = "VPC_LINK"
@@ -199,26 +285,49 @@ resource "aws_api_gateway_integration" "clientes_get" {
   uri = "http://${data.aws_lb.fiap44-alb.dns_name}/clientes"
 }
 
+resource "aws_api_gateway_integration" "clientes_get" {
+  rest_api_id = aws_api_gateway_rest_api.fiap44.id
+  resource_id = aws_api_gateway_resource.clientes_id.id
+  http_method = aws_api_gateway_method.clientes_get.http_method
+  integration_http_method = "GET"
+  type = "HTTP"
+  connection_type = "VPC_LINK"
+  connection_id = aws_api_gateway_vpc_link.fiap44-vpc-link.id
+  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/clientes/{id}"
+
+  request_parameters = {
+    "integration.request.path.id" = "method.request.path.id"
+  }
+}
+
 resource "aws_api_gateway_integration" "clientes_put" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.clientes.id
+  resource_id = aws_api_gateway_resource.clientes_id.id
   http_method = aws_api_gateway_method.clientes_put.http_method
   integration_http_method = "PUT"
   type = "HTTP"
   connection_type = "VPC_LINK"
   connection_id = aws_api_gateway_vpc_link.fiap44-vpc-link.id
-  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/clientes"
+  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/clientes/{id}"
+
+  request_parameters = {
+    "integration.request.path.id" = "method.request.path.id"
+  }
 }
 
 resource "aws_api_gateway_integration" "clientes_delete" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.clientes.id
+  resource_id = aws_api_gateway_resource.clientes_id.id
   http_method = aws_api_gateway_method.clientes_delete.http_method
   integration_http_method = "DELETE"
   type = "HTTP"
   connection_type = "VPC_LINK"
   connection_id = aws_api_gateway_vpc_link.fiap44-vpc-link.id
-  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/clientes"
+  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/clientes/{id}"
+
+  request_parameters = {
+    "integration.request.path.id" = "method.request.path.id"
+  }
 }
 
 resource "aws_api_gateway_method_response" "clientes_post" {
@@ -228,23 +337,30 @@ resource "aws_api_gateway_method_response" "clientes_post" {
   status_code = "201"
 }
 
-resource "aws_api_gateway_method_response" "clientes_get" {
+resource "aws_api_gateway_method_response" "clientes_list" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.clientes.id
+  http_method = aws_api_gateway_method.clientes_list.http_method
+  status_code = "200"
+}
+
+resource "aws_api_gateway_method_response" "clientes_get" {
+  rest_api_id = aws_api_gateway_rest_api.fiap44.id
+  resource_id = aws_api_gateway_resource.clientes_id.id
   http_method = aws_api_gateway_method.clientes_get.http_method
   status_code = "200"
 }
 
 resource "aws_api_gateway_method_response" "clientes_put" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.clientes.id
+  resource_id = aws_api_gateway_resource.clientes_id.id
   http_method = aws_api_gateway_method.clientes_put.http_method
   status_code = "204"
 }
 
 resource "aws_api_gateway_method_response" "clientes_delete" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.clientes.id
+  resource_id = aws_api_gateway_resource.clientes_id.id
   http_method = aws_api_gateway_method.clientes_delete.http_method
   status_code = "200"
 }
@@ -261,9 +377,21 @@ resource "aws_api_gateway_integration_response" "clientes_post" {
   ]
 }
 
-resource "aws_api_gateway_integration_response" "clientes_get" {
+resource "aws_api_gateway_integration_response" "clientes_list" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.clientes.id
+  http_method = aws_api_gateway_method.clientes_list.http_method
+  status_code = aws_api_gateway_method_response.clientes_list.status_code
+
+  depends_on = [
+    aws_api_gateway_method.clientes_list,
+    aws_api_gateway_integration.clientes_list,
+  ]
+}
+
+resource "aws_api_gateway_integration_response" "clientes_get" {
+  rest_api_id = aws_api_gateway_rest_api.fiap44.id
+  resource_id = aws_api_gateway_resource.clientes_id.id
   http_method = aws_api_gateway_method.clientes_get.http_method
   status_code = aws_api_gateway_method_response.clientes_get.status_code
 
@@ -275,7 +403,7 @@ resource "aws_api_gateway_integration_response" "clientes_get" {
 
 resource "aws_api_gateway_integration_response" "clientes_put" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.clientes.id
+  resource_id = aws_api_gateway_resource.clientes_id.id
   http_method = aws_api_gateway_method.clientes_put.http_method
   status_code = aws_api_gateway_method_response.clientes_put.status_code
 
@@ -287,7 +415,7 @@ resource "aws_api_gateway_integration_response" "clientes_put" {
 
 resource "aws_api_gateway_integration_response" "clientes_delete" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.clientes.id
+  resource_id = aws_api_gateway_resource.clientes_id.id
   http_method = aws_api_gateway_method.clientes_delete.http_method
   status_code = aws_api_gateway_method_response.clientes_delete.status_code
 
@@ -307,11 +435,28 @@ resource "aws_api_gateway_resource" "itens" {
   path_part = "itens"
 }
 
-resource "aws_api_gateway_method" "itens_get" {
+resource "aws_api_gateway_resource" "itens_id" {
+  rest_api_id = aws_api_gateway_rest_api.fiap44.id
+  parent_id = aws_api_gateway_resource.itens.id
+  path_part = "{id}"
+}
+
+resource "aws_api_gateway_method" "itens_list" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.itens.id
   http_method = "GET"
   authorization = "NONE"
+}
+
+resource "aws_api_gateway_method" "itens_get" {
+  rest_api_id = aws_api_gateway_rest_api.fiap44.id
+  resource_id = aws_api_gateway_resource.itens_id.id
+  http_method = "GET"
+  authorization = "NONE"
+
+  request_parameters = {
+    "method.request.path.id" = true
+  }
 }
 
 resource "aws_api_gateway_method" "itens_post" {
@@ -324,29 +469,52 @@ resource "aws_api_gateway_method" "itens_post" {
 
 resource "aws_api_gateway_method" "itens_put" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.itens.id
+  resource_id = aws_api_gateway_resource.itens_id.id
   http_method = "PUT"
   authorization = "COGNITO_USER_POOLS"
   authorizer_id = aws_api_gateway_authorizer.fiap44.id
+
+  request_parameters = {
+    "method.request.path.id" = true
+  }
 }
 
 resource "aws_api_gateway_method" "itens_delete" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.itens.id
+  resource_id = aws_api_gateway_resource.itens_id.id
   http_method = "DELETE"
   authorization = "COGNITO_USER_POOLS"
   authorizer_id = aws_api_gateway_authorizer.fiap44.id
+
+  request_parameters = {
+    "method.request.path.id" = true
+  }
 }
 
-resource "aws_api_gateway_integration" "itens_get" {
+resource "aws_api_gateway_integration" "itens_list" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.itens.id
-  http_method = aws_api_gateway_method.itens_get.http_method
+  http_method = aws_api_gateway_method.itens_list.http_method
   integration_http_method = "GET"
   type = "HTTP"
   connection_type = "VPC_LINK"
   connection_id = aws_api_gateway_vpc_link.fiap44-vpc-link.id
   uri = "http://${data.aws_lb.fiap44-alb.dns_name}/itens"
+}
+
+resource "aws_api_gateway_integration" "itens_get" {
+  rest_api_id = aws_api_gateway_rest_api.fiap44.id
+  resource_id = aws_api_gateway_resource.itens_id.id
+  http_method = aws_api_gateway_method.itens_get.http_method
+  integration_http_method = "GET"
+  type = "HTTP"
+  connection_type = "VPC_LINK"
+  connection_id = aws_api_gateway_vpc_link.fiap44-vpc-link.id
+  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/itens/{id}"
+
+  request_parameters = {
+    "integration.request.path.id" = "method.request.path.id"
+  }
 }
 
 resource "aws_api_gateway_integration" "itens_post" {
@@ -362,29 +530,44 @@ resource "aws_api_gateway_integration" "itens_post" {
 
 resource "aws_api_gateway_integration" "itens_put" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.itens.id
+  resource_id = aws_api_gateway_resource.itens_id.id
   http_method = aws_api_gateway_method.itens_put.http_method
   integration_http_method = "PUT"
   type = "HTTP"
   connection_type = "VPC_LINK"
   connection_id = aws_api_gateway_vpc_link.fiap44-vpc-link.id
-  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/itens"
+  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/itens/{id}"
+
+  request_parameters = {
+    "integration.request.path.id" = "method.request.path.id"
+  }
 }
 
 resource "aws_api_gateway_integration" "itens_delete" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.itens.id
+  resource_id = aws_api_gateway_resource.itens_id.id
   http_method = aws_api_gateway_method.itens_delete.http_method
   integration_http_method = "DELETE"
   type = "HTTP"
   connection_type = "VPC_LINK"
   connection_id = aws_api_gateway_vpc_link.fiap44-vpc-link.id
-  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/itens"
+  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/itens/{id}"
+
+  request_parameters = {
+    "integration.request.path.id" = "method.request.path.id"
+  }
+}
+
+resource "aws_api_gateway_method_response" "itens_list" {
+  rest_api_id = aws_api_gateway_rest_api.fiap44.id
+  resource_id = aws_api_gateway_resource.itens.id
+  http_method = aws_api_gateway_method.itens_list.http_method
+  status_code = "200"
 }
 
 resource "aws_api_gateway_method_response" "itens_get" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.itens.id
+  resource_id = aws_api_gateway_resource.itens_id.id
   http_method = aws_api_gateway_method.itens_get.http_method
   status_code = "200"
 }
@@ -398,21 +581,33 @@ resource "aws_api_gateway_method_response" "itens_post" {
 
 resource "aws_api_gateway_method_response" "itens_put" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.itens.id
+  resource_id = aws_api_gateway_resource.itens_id.id
   http_method = aws_api_gateway_method.itens_put.http_method
   status_code = "204"
 }
 
 resource "aws_api_gateway_method_response" "itens_delete" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.itens.id
+  resource_id = aws_api_gateway_resource.itens_id.id
   http_method = aws_api_gateway_method.itens_delete.http_method
   status_code = "200"
 }
 
-resource "aws_api_gateway_integration_response" "itens_get" {
+resource "aws_api_gateway_integration_response" "itens_list" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.itens.id
+  http_method = aws_api_gateway_method.itens_list.http_method
+  status_code = aws_api_gateway_method_response.itens_list.status_code
+
+  depends_on = [
+    aws_api_gateway_method.itens_list,
+    aws_api_gateway_integration.itens_list,
+  ]
+}
+
+resource "aws_api_gateway_integration_response" "itens_get" {
+  rest_api_id = aws_api_gateway_rest_api.fiap44.id
+  resource_id = aws_api_gateway_resource.itens_id.id
   http_method = aws_api_gateway_method.itens_get.http_method
   status_code = aws_api_gateway_method_response.itens_get.status_code
 
@@ -436,7 +631,7 @@ resource "aws_api_gateway_integration_response" "itens_post" {
 
 resource "aws_api_gateway_integration_response" "itens_put" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.itens.id
+  resource_id = aws_api_gateway_resource.itens_id.id
   http_method = aws_api_gateway_method.itens_put.http_method
   status_code = aws_api_gateway_method_response.itens_put.status_code
 
@@ -448,7 +643,7 @@ resource "aws_api_gateway_integration_response" "itens_put" {
 
 resource "aws_api_gateway_integration_response" "itens_delete" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
-  resource_id = aws_api_gateway_resource.itens.id
+  resource_id = aws_api_gateway_resource.itens_id.id
   http_method = aws_api_gateway_method.itens_delete.http_method
   status_code = aws_api_gateway_method_response.itens_delete.status_code
 
@@ -557,13 +752,16 @@ resource "aws_api_gateway_integration_response" "login" {
 
 resource "aws_api_gateway_deployment" "deployment" {
   depends_on = [
+    aws_api_gateway_integration.pedidos_list,
     aws_api_gateway_integration.pedidos_get,
     aws_api_gateway_integration.pedidos_post,
     aws_api_gateway_integration.pedidos_put,
+    aws_api_gateway_integration.clientes_list,
     aws_api_gateway_integration.clientes_get,
     aws_api_gateway_integration.clientes_post,
     aws_api_gateway_integration.clientes_put,
     aws_api_gateway_integration.clientes_delete,
+    aws_api_gateway_integration.itens_list,
     aws_api_gateway_integration.itens_get,
     aws_api_gateway_integration.itens_post,
     aws_api_gateway_integration.itens_put,
