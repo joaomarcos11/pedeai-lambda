@@ -47,5 +47,5 @@ jobs:
         uses: hashicorp/setup-terraform@v3
       
       - name: Provision resources
-        run: terraform apply -chdir=deployments -auto-approve
+        run: terraform init && terraform apply -chdir=deployments -auto-approve
         
