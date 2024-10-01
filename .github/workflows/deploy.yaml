@@ -40,7 +40,7 @@ jobs:
         run: cd ./lambda && GOARCH=amd64 GOOS=linux go build -o ../bootstrap main.go
 
       - name: Zip the AWS lambda function
-        run: zip deployment.zip bootstrap
+        run: pwd && zip deployment.zip bootstrap
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v3
