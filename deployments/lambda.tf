@@ -17,7 +17,7 @@ data "aws_vpc" "vpc" {
 }
 
 data "aws_db_instance" "fiap44-db" {
-  db_instance_identifier = "fiap44-db"
+  db_instance_identifier = "fiap44-db-clientes"
 }
 
 resource "aws_default_security_group" "default_security_group" {
