@@ -6,12 +6,12 @@ resource "aws_api_gateway_rest_api" "fiap44" {
     }
 }
 
-resource "aws_api_gateway_authorizer" "fiap44" {
-  name                   = "fiap44"
-  rest_api_id            = aws_api_gateway_rest_api.fiap44.id
-  type = "COGNITO_USER_POOLS"
-  provider_arns = [aws_cognito_user_pool.fiap44.arn]
-}
+# resource "aws_api_gateway_authorizer" "fiap44" {
+#   name                   = "fiap44"
+#   rest_api_id            = aws_api_gateway_rest_api.fiap44.id
+#   type = "COGNITO_USER_POOLS"
+#   provider_arns = [aws_cognito_user_pool.fiap44.arn]
+# }
 
 #####
 ## pedidos
@@ -40,16 +40,14 @@ resource "aws_api_gateway_method" "pedidos_list" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.pedidos.id
   http_method = "GET"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.fiap44.id
+  authorization = "NONE"
 }
 
 resource "aws_api_gateway_method" "pedidos_get" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.pedidos_id.id
   http_method = "GET"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.fiap44.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.id" = true
@@ -60,8 +58,7 @@ resource "aws_api_gateway_method" "pedidos_put" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.pedidos_id.id
   http_method = "PUT"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.fiap44.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.id" = true
@@ -223,16 +220,14 @@ resource "aws_api_gateway_method" "clientes_list" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.clientes.id
   http_method = "GET"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.fiap44.id
+  authorization = "NONE"
 }
 
 resource "aws_api_gateway_method" "clientes_get" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.clientes_id.id
   http_method = "GET"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.fiap44.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.id" = true
@@ -243,8 +238,7 @@ resource "aws_api_gateway_method" "clientes_put" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.clientes_id.id
   http_method = "PUT"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.fiap44.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.id" = true
@@ -255,8 +249,7 @@ resource "aws_api_gateway_method" "clientes_delete" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.clientes_id.id
   http_method = "DELETE"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.fiap44.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.id" = true
@@ -271,7 +264,7 @@ resource "aws_api_gateway_integration" "clientes_post" {
   type = "HTTP"
   connection_type = "VPC_LINK"
   connection_id = aws_api_gateway_vpc_link.fiap44-vpc-link.id
-  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/clientes"
+  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/v1/clientes"
 }
 
 resource "aws_api_gateway_integration" "clientes_list" {
@@ -282,7 +275,7 @@ resource "aws_api_gateway_integration" "clientes_list" {
   type = "HTTP"
   connection_type = "VPC_LINK"
   connection_id = aws_api_gateway_vpc_link.fiap44-vpc-link.id
-  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/clientes"
+  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/v1/clientes"
 }
 
 resource "aws_api_gateway_integration" "clientes_get" {
@@ -293,7 +286,7 @@ resource "aws_api_gateway_integration" "clientes_get" {
   type = "HTTP"
   connection_type = "VPC_LINK"
   connection_id = aws_api_gateway_vpc_link.fiap44-vpc-link.id
-  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/clientes/{id}"
+  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/v1/clientes/{id}"
 
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
@@ -308,7 +301,7 @@ resource "aws_api_gateway_integration" "clientes_put" {
   type = "HTTP"
   connection_type = "VPC_LINK"
   connection_id = aws_api_gateway_vpc_link.fiap44-vpc-link.id
-  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/clientes/{id}"
+  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/v1/clientes/{id}"
 
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
@@ -323,7 +316,7 @@ resource "aws_api_gateway_integration" "clientes_delete" {
   type = "HTTP"
   connection_type = "VPC_LINK"
   connection_id = aws_api_gateway_vpc_link.fiap44-vpc-link.id
-  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/clientes/{id}"
+  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/v1/clientes/{id}"
 
   request_parameters = {
     "integration.request.path.id" = "method.request.path.id"
@@ -463,16 +456,14 @@ resource "aws_api_gateway_method" "itens_post" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.itens.id
   http_method = "POST"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.fiap44.id
+  authorization = "NONE"
 }
 
 resource "aws_api_gateway_method" "itens_put" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.itens_id.id
   http_method = "PUT"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.fiap44.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.id" = true
@@ -483,8 +474,7 @@ resource "aws_api_gateway_method" "itens_delete" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.itens_id.id
   http_method = "DELETE"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.fiap44.id
+  authorization = "NONE"
 
   request_parameters = {
     "method.request.path.id" = true
@@ -667,8 +657,7 @@ resource "aws_api_gateway_method" "pagamento" {
   rest_api_id = aws_api_gateway_rest_api.fiap44.id
   resource_id = aws_api_gateway_resource.pagamento.id
   http_method = "POST"
-  authorization = "COGNITO_USER_POOLS"
-  authorizer_id = aws_api_gateway_authorizer.fiap44.id
+  authorization = "NONE"
 }
 
 resource "aws_api_gateway_integration" "pagamento" {
@@ -679,7 +668,7 @@ resource "aws_api_gateway_integration" "pagamento" {
   type = "HTTP"
   connection_type = "VPC_LINK"
   connection_id = aws_api_gateway_vpc_link.fiap44-vpc-link.id
-  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/pagamento"
+  uri = "http://${data.aws_lb.fiap44-alb.dns_name}/api/pagamento"
 }
 
 resource "aws_api_gateway_method_response" "pagamento" {
